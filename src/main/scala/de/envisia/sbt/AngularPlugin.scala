@@ -23,9 +23,11 @@ object AngularPlugin extends AutoPlugin {
     val ngBuild: TaskKey[Seq[(File, String)]]  = taskKey[Seq[(File, String)]]("ngBuild")
     val ngOutputDirectory: SettingKey[File]    = settingKey[File]("build output directory of angular")
     val ngDevOutputDirectory: SettingKey[File] = settingKey[File]("dev build output directory of angular")
+    val ngLint: TaskKey[Unit]                  = taskKey[Unit]("ng lint")
   }
 
   import autoImport._
+  import scala.sys.process._
   import com.typesafe.sbt.packager.MappingsHelper._
 
   class AngularLogger(logger: sbt.Logger) extends ProcessLogger {
@@ -87,6 +89,20 @@ object AngularPlugin extends AutoPlugin {
       }
     },
     ngCommand := s"${ngProcessPrefix.value}node --max_old_space_size=${ngNodeMemory.value} node_modules/@angular/cli/bin/ng",
+    ngLint := {
+      val log = new AngularLogger(streams.value.log)
+      val cmd = ngCommand.value
+      yarnInstall.value
+
+      val retCode1 = Process(s"$cmd lint").!(log)
+      if (retCode1 != 0) {
+        throw new RuntimeException("ng lint failed")
+      }
+      val retCode2 = Process(s"$cmd build --prod").!(log)
+      if (retCode2 != 0) {
+        throw new RuntimeException("ng build --prod failed")
+      }
+    },
     ngTarget := target.value / "web",
     cleanFiles += ngDirectory.value / "dist",
     ngBaseDirectory := ngDirectory.value,

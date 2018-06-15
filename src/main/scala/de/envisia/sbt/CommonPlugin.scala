@@ -5,10 +5,34 @@ import sbt.Keys._
 import sbt.plugins.JvmPlugin
 
 object CommonPlugin extends AutoPlugin {
+
   override def trigger: PluginTrigger = allRequirements
   override def requires: Plugins      = JvmPlugin
 
+  object autoImport {
+    val formatAll: TaskKey[Unit]  = taskKey[Unit]("format test and compile")
+    val formatLint: TaskKey[Unit] = taskKey[Unit]("format and lint")
+  }
+
+  import autoImport._
+  import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
+  import scala.sys.process._
+
   override def projectSettings = Seq(
+    formatAll := {
+      (Compile / scalafmt).value
+      (Test / scalafmt).value
+    },
+    formatLint := {
+      val exitCode = "git diff --exit-code".!
+      if (exitCode != 0) {
+        throw new RuntimeException(
+          """|ERROR: Scalafmt check failed, see differences above.
+             |To fix, format your sources using 'sbt scalafmt test:scalafmt' before submitting a pull request.
+             |Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."""
+        )
+      }
+    },
     // disables fatal warnings in the sbt console
     scalacOptions in console in Compile -= "-Xfatal-warnings",
     scalacOptions in console in Test -= "-Xfatal-warnings",
@@ -66,7 +90,7 @@ object CommonPlugin extends AutoPlugin {
       "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
       "-Ywarn-infer-any", // Warn when a type argument is inferred to be `Any`.
       "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
-      "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
+      "-Ywarn-nullary-unit",     // Warn when nullary methods return Unit.
       // currently we allow numeric-widening since a lot of projects use it
       // "-Ywarn-numeric-widen", // Warn when numerics are widened.
       "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
