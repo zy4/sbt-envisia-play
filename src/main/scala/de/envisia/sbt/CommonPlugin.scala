@@ -18,21 +18,23 @@ object CommonPlugin extends AutoPlugin {
   import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
   import scala.sys.process._
 
+  private def formatLintTask: Def.Initialize[Task[Unit]] = Def.task {
+    val exitCode = "git diff --exit-code".!
+    if (exitCode != 0) {
+      throw new RuntimeException(
+        """|ERROR: Scalafmt check failed, see differences above.
+           |To fix, format your sources using 'sbt scalafmt test:scalafmt' before submitting a pull request.
+           |Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."""
+      )
+    }
+  }
+
   override def projectSettings = Seq(
     formatAll := {
       (Compile / scalafmt).value
       (Test / scalafmt).value
     },
-    formatLint := {
-      val exitCode = "git diff --exit-code".!
-      if (exitCode != 0) {
-        throw new RuntimeException(
-          """|ERROR: Scalafmt check failed, see differences above.
-             |To fix, format your sources using 'sbt scalafmt test:scalafmt' before submitting a pull request.
-             |Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."""
-        )
-      }
-    },
+    formatLint := formatLintTask.dependsOn(formatAll).value,
     // disables fatal warnings in the sbt console
     scalacOptions in console in Compile -= "-Xfatal-warnings",
     scalacOptions in console in Test -= "-Xfatal-warnings",
