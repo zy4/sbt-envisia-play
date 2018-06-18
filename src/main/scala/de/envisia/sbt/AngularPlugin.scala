@@ -7,8 +7,6 @@ import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import sbt._
 
-import scala.sys.process.{ Process, ProcessLogger }
-
 object AngularPlugin extends AutoPlugin {
   override def requires: Plugins = JvmPlugin && PlayService
 
