@@ -11,17 +11,18 @@ object AngularPlugin extends AutoPlugin {
   override def requires: Plugins = JvmPlugin && PlayService
 
   object autoImport {
-    val ngNodeMemory: SettingKey[Int]          = settingKey[Int]("ng node memory")
-    val ngProcessPrefix: SettingKey[String]    = settingKey[String]("ng process prefix (useful for windows)")
-    val ngCommand: SettingKey[String]          = settingKey[String]("ng command")
-    val ngDirectory: SettingKey[File]          = settingKey[File]("ng directory")
-    val ngTarget: SettingKey[File]             = settingKey[File]("ng target")
-    val ngBaseDirectory: SettingKey[File]      = settingKey[File]("ngBaseDirectory")
-    val yarnInstall: TaskKey[Unit]             = taskKey[Unit]("yarnInstall")
-    val ngBuild: TaskKey[Seq[(File, String)]]  = taskKey[Seq[(File, String)]]("ngBuild")
-    val ngOutputDirectory: SettingKey[File]    = settingKey[File]("build output directory of angular")
-    val ngDevOutputDirectory: SettingKey[File] = settingKey[File]("dev build output directory of angular")
-    val ngLint: TaskKey[Unit]                  = taskKey[Unit]("ng lint")
+    val ngNodeMemory: SettingKey[Int]           = settingKey[Int]("ng node memory")
+    val ngProcessPrefix: SettingKey[String]     = settingKey[String]("ng process prefix (useful for windows)")
+    val ngCommand: SettingKey[String]           = settingKey[String]("ng command")
+    val ngDirectory: SettingKey[File]           = settingKey[File]("ng directory")
+    val ngTarget: SettingKey[File]              = settingKey[File]("ng target")
+    val ngBaseDirectory: SettingKey[File]       = settingKey[File]("ngBaseDirectory")
+    val yarnInstall: TaskKey[Unit]              = taskKey[Unit]("yarnInstall")
+    val ngBuild: TaskKey[Seq[(File, String)]]   = taskKey[Seq[(File, String)]]("ngBuild")
+    val ngOutputDirectory: SettingKey[File]     = settingKey[File]("build output directory of angular")
+    val ngDevOutputDirectory: SettingKey[File]  = settingKey[File]("dev build output directory of angular")
+    val ngLint: TaskKey[Unit]                   = taskKey[Unit]("ng lint")
+    val ngPackage: TaskKey[Seq[(File, String)]] = taskKey[Seq[(File, String)]]("ng package")
   }
 
   import autoImport._
@@ -106,6 +107,7 @@ object AngularPlugin extends AutoPlugin {
     ngBaseDirectory := ngDirectory.value,
     ngOutputDirectory := target.value / "dist",
     ngDevOutputDirectory := ngTarget.value / "public" / "main",
+    ngPackage := ngBuildAndGzip.value,
     yarnInstall := {
       val log = streams.value.log
       // resolve dependencies before installing
@@ -114,9 +116,7 @@ object AngularPlugin extends AutoPlugin {
     (run in Compile) := (run in Compile).dependsOn(yarnInstall).evaluated,
     // includes the angular application
     ngBuild := ngBuildTask.dependsOn(yarnInstall).value,
-    mappings in (Compile, packageBin) ++= {
-      ngBuildAndGzip.value
-    },
+    mappings in (Compile, packageBin) ++= ngPackage.value,
     PlayKeys.playRunHooks += Angular2(
       ngCommand.value,
       streams.value.log,
