@@ -87,7 +87,7 @@ object AngularPlugin extends AutoPlugin {
     if (retCode1 != 0) {
       throw new RuntimeException("ng lint failed")
     }
-    val retCode2 = runProcessRetCode(log, s"$cmd build --prod", base)
+    val retCode2 = runProcessRetCode(log, s"$cmd build --prod --progress=false", base)
     if (retCode2 != 0) {
       throw new RuntimeException("ng build --prod failed")
     }
