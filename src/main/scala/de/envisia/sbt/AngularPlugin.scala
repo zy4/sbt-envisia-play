@@ -35,13 +35,13 @@ object AngularPlugin extends AutoPlugin {
     override def buffer[T](f: => T): T   = f
   }
 
-  private def runProcessSync(log: Logger, command: String, base: File): Unit = {
+  private def runProcessRetCode(log: Logger, command: String, base: File): Int = {
     log.info(s"Running $command...")
-    val rc = Process(command, base).!(new ProcessLogger {
-      override def err(s: => String): Unit = log.err(s"> $s")
-      override def out(s: => String): Unit = log.info(s"> $s")
-      override def buffer[T](f: => T): T   = f
-    })
+    Process(command, base).!(new AngularLogger(log))
+  }
+
+  private def runProcessSync(log: Logger, command: String, base: File): Unit = {
+    val rc = runProcessRetCode(log, command, base)
     if (rc != 0) {
       throw new Angular2Exception(s"$command failed with $rc")
     }
@@ -79,14 +79,15 @@ object AngularPlugin extends AutoPlugin {
   }
 
   private def ngLintTask: Def.Initialize[Task[Unit]] = Def.task {
-    val log = new AngularLogger(streams.value.log)
-    val cmd = ngCommand.value
+    val log  = streams.value.log
+    val cmd  = ngCommand.value
+    val base = ngDirectory.value
 
-    val retCode1 = Process(s"$cmd lint").!(log)
+    val retCode1 = runProcessRetCode(log, s"$cmd lint", base)
     if (retCode1 != 0) {
       throw new RuntimeException("ng lint failed")
     }
-    val retCode2 = Process(s"$cmd build --prod").!(log)
+    val retCode2 = runProcessRetCode(log, s"$cmd build --prod", base)
     if (retCode2 != 0) {
       throw new RuntimeException("ng build --prod failed")
     }

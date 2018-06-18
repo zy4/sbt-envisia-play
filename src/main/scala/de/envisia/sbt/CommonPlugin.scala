@@ -56,10 +56,10 @@ object CommonPlugin extends AutoPlugin {
     // Tests
     scalacOptions in Test ++= Seq("-Yrangepos"),
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD"),
+    scalaFatalWarnings := true,
     scalacOptions ++= {
       // error on any warning
       val withFatalWarnings = if (scalaFatalWarnings.value) "-Xfatal-warnings" :: Nil else Nil
-
       withFatalWarnings ::: List(
         "-encoding",
         "UTF-8", // yes, this is 2 args
