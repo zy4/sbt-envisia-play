@@ -78,6 +78,20 @@ object AngularPlugin extends AutoPlugin {
     }
   }
 
+  private def ngLintTask: Def.Initialize[Task[Unit]] = Def.task {
+    val log = new AngularLogger(streams.value.log)
+    val cmd = ngCommand.value
+
+    val retCode1 = Process(s"$cmd lint").!(log)
+    if (retCode1 != 0) {
+      throw new RuntimeException("ng lint failed")
+    }
+    val retCode2 = Process(s"$cmd build --prod").!(log)
+    if (retCode2 != 0) {
+      throw new RuntimeException("ng build --prod failed")
+    }
+  }
+
   override def projectSettings = Seq(
     ngNodeMemory := 1024,
     ngDirectory := file("ui"),
@@ -88,20 +102,7 @@ object AngularPlugin extends AutoPlugin {
       }
     },
     ngCommand := s"${ngProcessPrefix.value}node --max_old_space_size=${ngNodeMemory.value} node_modules/@angular/cli/bin/ng",
-    ngLint := {
-      val log = new AngularLogger(streams.value.log)
-      val cmd = ngCommand.value
-      yarnInstall.value
-
-      val retCode1 = Process(s"$cmd lint").!(log)
-      if (retCode1 != 0) {
-        throw new RuntimeException("ng lint failed")
-      }
-      val retCode2 = Process(s"$cmd build --prod").!(log)
-      if (retCode2 != 0) {
-        throw new RuntimeException("ng build --prod failed")
-      }
-    },
+    ngLint := ngLintTask.dependsOn(yarnInstall).value,
     ngTarget := target.value / "web",
     cleanFiles += ngDirectory.value / "dist",
     ngBaseDirectory := ngDirectory.value,
