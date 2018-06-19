@@ -9,7 +9,15 @@ import scala.sys.process.Process
 
 object Angular2 {
 
-  def apply(ng: String, log: Logger, base: File, target: File, targetFolder: File): PlayRunHook = {
+  def apply(
+      ng: String,
+      ngBaseHref: Option[String],
+      log: Logger,
+      base: File,
+      target: File,
+      targetFolder: File
+  ): PlayRunHook = {
+    val withBaseHref = ngBaseHref.map(h => s"--base-href=$h").getOrElse("")
 
     object Angular2Process extends PlayRunHook {
       private var watchProcess: Option[Process] = None
@@ -33,7 +41,7 @@ object Angular2 {
       override def afterStarted(addr: InetSocketAddress): Unit = {
         watchProcess = Some(
           Process(
-            s"$ng build --watch --delete-output-path=false --progress=false --output-path=${targetFolder.toString}",
+            s"$ng build $withBaseHref --watch --delete-output-path=false --progress=false --output-path=${targetFolder.toString}",
             base
           ).run
         )

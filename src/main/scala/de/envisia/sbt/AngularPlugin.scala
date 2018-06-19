@@ -13,6 +13,7 @@ object AngularPlugin extends AutoPlugin {
   object autoImport {
     val ngNodeMemory: SettingKey[Int]           = settingKey[Int]("ng node memory")
     val ngProcessPrefix: SettingKey[String]     = settingKey[String]("ng process prefix (useful for windows)")
+    val ngBaseHref: SettingKey[Option[String]]  = settingKey[Option[String]]("ng base href")
     val ngCommand: SettingKey[String]           = settingKey[String]("ng command")
     val ngDirectory: SettingKey[File]           = settingKey[File]("ng directory")
     val ngTarget: SettingKey[File]              = settingKey[File]("ng target")
@@ -48,13 +49,15 @@ object AngularPlugin extends AutoPlugin {
   }
 
   private def ngBuildTask = Def.task {
-    val ng     = ngCommand.value
-    val dir    = ngDirectory.value
-    val log    = streams.value.log
-    val output = ngOutputDirectory.value
+    val baseHref = ngBaseHref.value
+    val ng       = ngCommand.value
+    val dir      = ngDirectory.value
+    val log      = streams.value.log
+    val output   = ngOutputDirectory.value
+    val withBaseHref = baseHref.map(h => s"--base-href=$h").getOrElse("")
     runProcessSync(
       log,
-      s"$ng build --prod=true --progress=false --aot=true --build-optimizer --output-path=${output.toString}",
+      s"$ng build $withBaseHref --prod=true --progress=false --aot=true --build-optimizer --output-path=${output.toString}",
       dir
     )
     contentOf(output)
@@ -95,6 +98,7 @@ object AngularPlugin extends AutoPlugin {
 
   override def projectSettings = Seq(
     ngNodeMemory := 1024,
+    ngBaseHref := None,
     ngDirectory := file("ui"),
     ngProcessPrefix := {
       sys.props("os.name").toLowerCase match {
@@ -121,6 +125,7 @@ object AngularPlugin extends AutoPlugin {
     mappings in (Compile, packageBin) ++= ngPackage.value,
     PlayKeys.playRunHooks += Angular2(
       ngCommand.value,
+      ngBaseHref.value,
       streams.value.log,
       ngBaseDirectory.value,
       target.value,
