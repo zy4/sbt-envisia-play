@@ -55,7 +55,6 @@ object CommonPlugin extends AutoPlugin {
     publishArtifact in (Compile, packageDoc) := false,
     // Tests
     scalacOptions in Test ++= Seq("-Yrangepos"),
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD"),
     scalaFatalWarnings := true,
     scalacOptions ++= {
       // error on any warning
