@@ -1,9 +1,15 @@
 import ReleaseTransformations._
 import xerial.sbt.Sonatype._
 
+/** Versions */
+val EnvisiaScalaVersion = "2.12.6"
+val AkkaVersion = "2.5.13"
+val PlayVersion = "2.6.17"
+val ScalaFmtVersion = "1.5.1"
+
 name := "sbt-envisia-play"
 organization := "de.envisia.sbt"
-scalaVersion := "2.12.6"
+scalaVersion := EnvisiaScalaVersion
 // publishing settings
 sonatypeProfileName := "de.envisia"
 publishMavenStyle := true
@@ -27,8 +33,19 @@ developers := List(
 publishTo := sonatypePublishTo.value
 
 sbtPlugin := true
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.17")
-addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "1.5.1")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % PlayVersion)
+addSbtPlugin("com.geirsson" % "sbt-scalafmt" % ScalaFmtVersion)
+enablePlugins(BuildInfoPlugin)
+
+buildInfoPackage := "de.envisia.sbt.info"
+buildInfoKeys := Seq[BuildInfoKey](
+  name,
+  version,
+  scalaVersion,
+  sbtVersion,
+  "playVersion" -> PlayVersion,
+  "akkaVersion" -> AkkaVersion
+)
 
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,

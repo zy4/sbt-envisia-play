@@ -10,6 +10,7 @@ object CommonPlugin extends AutoPlugin {
   override def requires: Plugins      = JvmPlugin
 
   object autoImport {
+    val withAkka: SettingKey[Boolean]           = settingKey[Boolean]("with akka dependencies")
     val scalaFatalWarnings: SettingKey[Boolean] = settingKey[Boolean]("enable fatal warnings")
     val formatAll: TaskKey[Unit]                = taskKey[Unit]("format test and compile")
     val formatLint: TaskKey[Unit]               = taskKey[Unit]("format and lint")
@@ -105,6 +106,18 @@ object CommonPlugin extends AutoPlugin {
         "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
         "-Ywarn-unused:privates" // Warn if a private member is unused.
       )
+    },
+    withAkka := true,
+    libraryDependencies ++= {
+      if (withAkka.value) {
+        Seq(
+          "com.typesafe.akka" %% "akka-actor"          % de.envisia.sbt.info.BuildInfo.akkaVersion,
+          "com.typesafe.akka" %% "akka-stream"         % de.envisia.sbt.info.BuildInfo.akkaVersion,
+          "com.typesafe.akka" %% "akka-stream-testkit" % de.envisia.sbt.info.BuildInfo.akkaVersion % Test
+        )
+      } else {
+        Nil
+      }
     }
   )
 
