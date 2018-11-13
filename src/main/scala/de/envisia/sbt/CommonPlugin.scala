@@ -111,6 +111,7 @@ object CommonPlugin extends AutoPlugin {
     libraryDependencies ++= {
       if (withAkka.value) {
         Seq(
+          "com.typesafe.akka" %% "akka-slf4j"          % de.envisia.sbt.info.BuildInfo.akkaVersion,
           "com.typesafe.akka" %% "akka-actor"          % de.envisia.sbt.info.BuildInfo.akkaVersion,
           "com.typesafe.akka" %% "akka-stream"         % de.envisia.sbt.info.BuildInfo.akkaVersion,
           "com.typesafe.akka" %% "akka-stream-testkit" % de.envisia.sbt.info.BuildInfo.akkaVersion % Test
