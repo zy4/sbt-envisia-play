@@ -24,6 +24,7 @@ object AngularPlugin extends AutoPlugin {
     val ngDevOutputDirectory: SettingKey[File]  = settingKey[File]("dev build output directory of angular")
     val ngLint: TaskKey[Unit]                   = taskKey[Unit]("ng lint")
     val ngPackage: TaskKey[Seq[(File, String)]] = taskKey[Seq[(File, String)]]("ng package")
+    val ngDeployUrl: SettingKey[Option[String]] = settingKey[Option[String]]("ng deploy url")
   }
 
   import autoImport._
@@ -54,10 +55,12 @@ object AngularPlugin extends AutoPlugin {
     val dir      = ngDirectory.value
     val log      = streams.value.log
     val output   = ngOutputDirectory.value
+    val deployUrl = ngDeployUrl.value
     val withBaseHref = baseHref.map(h => s"--base-href=$h").getOrElse("")
+    val withDeployUrl = deployUrl.map(h => s"--deploy-url=$h").getOrElse("")
     runProcessSync(
       log,
-      s"$ng build $withBaseHref --prod=true --progress=false --aot=true --build-optimizer --output-path=${output.toString}",
+      s"$ng build $withBaseHref --prod=true --progress=false --aot=true --build-optimizer $withDeployUrl --output-path=${output.toString}",
       dir
     )
     contentOf(output)
