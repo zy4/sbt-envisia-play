@@ -38,7 +38,7 @@ object Angular2 {
         }
       }
 
-      override def afterStarted(addr: InetSocketAddress): Unit = {
+      override def afterStarted(): Unit = {
         watchProcess = Some(
           Process(
             s"$ng build $withBaseHref --watch --delete-output-path=false --progress=false --output-path=${targetFolder.toString}",
