@@ -5,7 +5,7 @@ import play.sbt.PlayImport.PlayKeys
 import play.sbt.{ PlayInternalKeys, PlayService }
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
-import sbt._
+import sbt.{ Def, _ }
 
 object AngularPlugin extends AutoPlugin {
   override def requires: Plugins = JvmPlugin && PlayService
@@ -99,8 +99,9 @@ object AngularPlugin extends AutoPlugin {
     }
   }
 
-  override def projectSettings = Seq(
+  override def projectSettings: Seq[Def.Setting[_]] = Seq(
     ngNodeMemory := 1024,
+    ngDeployUrl := None,
     ngBaseHref := None,
     ngDirectory := file("ui"),
     ngProcessPrefix := {
