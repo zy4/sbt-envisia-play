@@ -3,7 +3,7 @@ import xerial.sbt.Sonatype._
 
 /** Versions */
 val EnvisiaScalaVersion = "2.12.8"
-val AkkaVersion = "2.5.19"
+val AkkaVersion = "2.5.20"
 val PlayVersion = "2.7.0"
 val ScalaFmtVersion = "1.5.1"
 
